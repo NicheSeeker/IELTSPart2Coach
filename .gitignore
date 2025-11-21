@@ -104,3 +104,17 @@ build.log
 # IDE
 .vscode/
 .idea/
+
+# Security - API Keys and Secrets (CRITICAL)
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+api-keys.txt
+credentials.json
+config.local.json
+
+# Documentation with sensitive data
+**/CLAUDE-PRIVATE.md
+**/*-private.md
