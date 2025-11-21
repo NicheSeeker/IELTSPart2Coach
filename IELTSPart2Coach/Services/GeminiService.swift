@@ -25,28 +25,25 @@ class GeminiService {
             #endif
             return key
         } catch KeychainError.keyNotFound {
-            // First launch: Migrate hardcoded key to Keychain
+            // First launch: Try environment variable (simulator only)
             #if DEBUG
-            print("🔐 First launch: migrating API key to Keychain...")
+            print("🔐 API key not found in Keychain")
             #endif
 
             // Priority 2: Check environment variable (simulator)
             if let envKey = ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"], !envKey.isEmpty {
+                #if DEBUG
+                print("✅ Using API key from environment variable")
+                #endif
                 try KeychainManager.shared.saveAPIKey(envKey)
                 return envKey
             }
 
-            // Priority 3: One-time migration from hardcoded value
-            // ⚠️ This key will be removed after saving to Keychain
-            let defaultKey = "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"
-            try KeychainManager.shared.saveAPIKey(defaultKey)
-
+            // No API key available - user must configure via Settings
             #if DEBUG
-            print("✅ API key migrated to Keychain successfully")
-            print("⚠️ Please update your key in Settings if needed")
+            print("❌ No API key found. Please configure in Settings → AI Service")
             #endif
-
-            return defaultKey
+            throw GeminiError.missingAPIKey
         } catch {
             // Failed to retrieve from Keychain
             throw GeminiError.missingAPIKey
