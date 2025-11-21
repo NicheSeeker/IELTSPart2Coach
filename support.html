@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - IELTS Part 2 Coach</title>
+    <style>
+        /* Liquid Glass Design System */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --fog-white: #F8F8F8;
+            --soft-gray: #EAEAEA;
+            --text-primary: #1C1C1E;
+            --text-secondary: #6B6B6B;
+            --accent-amber: #FFC46B;
+            --accent-azure: #9FD5FF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Rounded', system-ui, sans-serif;
+            background: var(--fog-white);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Glass Card */
+        .card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+
+        /* Contact Methods */
+        .contact-method {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .contact-method:last-child {
+            border-bottom: none;
+        }
+
+        .contact-icon {
+            font-size: 24px;
+            margin-right: 16px;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .contact-value {
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        .contact-value a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .contact-value a:hover {
+            opacity: 0.6;
+        }
+
+        /* FAQ */
+        .faq-item {
+            margin-bottom: 24px;
+        }
+
+        .faq-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .faq-question {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .faq-answer {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .faq-answer code {
+            background: var(--soft-gray);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 0;
+            }
+
+            .card {
+                padding: 24px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --fog-white: #1C1C1E;
+                --soft-gray: #2C2C2E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #98989D;
+            }
+
+            .card {
+                background: rgba(44, 44, 46, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .faq-answer code {
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Support</h1>
+            <p class="subtitle">We're here to help you express yourself</p>
+        </header>
+
+        <!-- Contact Methods -->
+        <div class="card">
+            <h2>Get in Touch</h2>
+
+            <div class="contact-method">
+                <div class="contact-icon">📧</div>
+                <div class="contact-info">
+                    <div class="contact-label">Email Support</div>
+                    <div class="contact-value">
+                        <a href="mailto:charliewang0322@gmail.com?subject=IELTS%20Part%202%20Coach%20Support">charliewang0322@gmail.com</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-method">
+                <div class="contact-icon">🐛</div>
+                <div class="contact-info">
+                    <div class="contact-label">Bug Reports</div>
+                    <div class="contact-value">
+                        <a href="https://github.com/charliewang0322/IELTSPart2Coach/issues" target="_blank">GitHub Issues</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-method">
+                <div class="contact-icon">💡</div>
+                <div class="contact-info">
+                    <div class="contact-label">Feature Requests</div>
+                    <div class="contact-value">
+                        <a href="https://github.com/charliewang0322/IELTSPart2Coach/issues" target="_blank">GitHub Issues</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <div class="faq-question">🎤 The app can't access my microphone. What should I do?</div>
+                <div class="faq-answer">
+                    Go to Settings → Privacy & Security → Microphone → Enable "IELTS Part 2 Coach". If the app still doesn't work, try restarting your device.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">❌ AI analysis failed. How can I fix this?</div>
+                <div class="faq-answer">
+                    This usually happens due to network issues or API errors. Make sure you're connected to the internet and try again. If the problem persists, please email us with the error message.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">📝 Transcript doesn't show in feedback. Why?</div>
+                <div class="faq-answer">
+                    First, check Settings → Speech Recognition → Enable "Show Transcript in Feedback". Note: Transcription works best on real devices. It may not work properly in the iOS Simulator.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">🗑️ How do I delete all my recordings?</div>
+                <div class="faq-answer">
+                    Go to Settings → Data Management → Clear All History. This will permanently delete all recordings and feedback. You can also delete individual sessions in the History view by swiping left.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">⏱️ Why does recording stop at 2 minutes?</div>
+                <div class="faq-answer">
+                    This matches the real IELTS Speaking Part 2 format, where you have exactly 2 minutes to speak. The app automatically stops at 2 minutes to simulate the authentic exam experience.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">🔐 Is my data secure?</div>
+                <div class="faq-answer">
+                    Yes. All recordings are stored locally on your device by default. AI analysis is sent securely to OpenRouter via HTTPS. We don't track your usage or store your data on any server. You can delete everything with one tap.
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>IELTS Part 2 Coach · Made with care</p>
+            <p style="margin-top: 8px; font-size: 13px;">
+                This app is not affiliated with or endorsed by IELTS.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
