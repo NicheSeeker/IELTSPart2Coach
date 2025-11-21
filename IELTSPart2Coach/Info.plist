@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleGetInfoString</key>
 	<string></string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>IELTS Part 2 Coach uses speech recognition to provide optional transcript feedback with filler word highlighting.</string>
 </dict>
