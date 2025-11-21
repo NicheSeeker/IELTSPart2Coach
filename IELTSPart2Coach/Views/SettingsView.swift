@@ -295,7 +295,7 @@ struct SettingsView: View {
     // MARK: - Helper Methods
 
     private func openPrivacyPolicy() {
-        guard let url = URL(string: "https://ieltspart2coach.com/privacy") else { return }
+        guard let url = URL(string: "https://nicheseeker.github.io/IELTSPart2Coach/privacy.html") else { return }
         UIApplication.shared.open(url)
     }
 }
