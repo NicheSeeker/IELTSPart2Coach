@@ -45,3 +45,24 @@ struct BandScore: Codable {
         String(format: "%.1f", score)
     }
 }
+
+// MARK: - BandScores Extensions
+
+extension BandScores {
+    /// Calculate average score rounded to nearest 0.5 (IELTS standard)
+    /// IELTS only uses whole numbers (6.0, 7.0) and half scores (6.5, 7.5)
+    var averageScore: Double {
+        let raw = (fluency.score + lexical.score + grammar.score + pronunciation.score) / 4.0
+        return (raw * 2).rounded() / 2  // Round to nearest 0.5
+    }
+
+    /// Display average score in IELTS format
+    /// - Returns: "6" for 6.0, "6.5" for 6.5 (no trailing .0 for whole numbers)
+    var averageDisplayScore: String {
+        if averageScore.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", averageScore)  // Display as "6" not "6.0"
+        } else {
+            return String(format: "%.1f", averageScore)  // Display as "6.5"
+        }
+    }
+}

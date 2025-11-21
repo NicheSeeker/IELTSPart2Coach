@@ -42,7 +42,7 @@ struct SessionCard: View {
                             Text("•")
                                 .foregroundStyle(.secondary.opacity(0.5))
 
-                            Text("Fluency \(feedback.bands.fluency.displayScore)")
+                            Text("Overall \(feedback.bands.averageDisplayScore)")
                                 .font(.system(size: 13, weight: .regular, design: .rounded))
                                 .foregroundStyle(.secondary)
                         }
