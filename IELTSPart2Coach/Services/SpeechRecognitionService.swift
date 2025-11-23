@@ -21,7 +21,7 @@ class SpeechRecognitionService {
 
     // Audio segmentation constants
     private let maxSegmentDuration: TimeInterval = 50.0  // 50s per segment (leave 10s buffer)
-    private let recognitionTimeout: TimeInterval = 60.0  // 60s timeout per segment
+    private let recognitionTimeout: TimeInterval = 120.0  // 120s timeout per segment (supports 2-min recordings)
 
     // MARK: - Initialization
 
@@ -304,7 +304,7 @@ class SpeechRecognitionService {
                         // Safety timeout (backup mechanism only)
                         // Primary return is now via isFinal callback above
                         Task { @MainActor in
-                            try? await Task.sleep(nanoseconds: 15_000_000_000)  // Reduced to 15s
+                            try? await Task.sleep(nanoseconds: 90_000_000_000)  // 90s for 50s audio segments
 
                             let canResume = await accumulator.markResumed()
                             if canResume {
@@ -405,9 +405,7 @@ class SpeechRecognitionService {
 
         // Short audio: Direct recognition
         if duration <= maxSegmentDuration {
-            #if DEBUG
             print("📝 Short audio, processing directly...")
-            #endif
 
             let transcript = await recognizeSingleSegment(audioURL: audioURL)
 
@@ -425,10 +423,8 @@ class SpeechRecognitionService {
         }
 
         // Long audio: Segmentation required
-        #if DEBUG
         let segmentCount = Int(ceil(duration / maxSegmentDuration))
         print("🔪 Long audio detected, splitting into \(segmentCount) segments...")
-        #endif
 
         var fullTranscript = ""
         var segmentURLs: [URL] = []
@@ -445,9 +441,7 @@ class SpeechRecognitionService {
                     preferredTimescale: 600
                 )
 
-                #if DEBUG
                 print("📝 Processing segment \(segmentIndex)/\(segmentCount) (\(String(format: "%.1f", currentTime))s - \(String(format: "%.1f", min(currentTime + maxSegmentDuration, duration)))s)")
-                #endif
 
                 // Export segment
                 let segmentURL = try await exportAudioSegment(
@@ -477,7 +471,6 @@ class SpeechRecognitionService {
                 try? FileManager.default.removeItem(at: segmentURL)
             }
 
-            #if DEBUG
             if !fullTranscript.isEmpty {
                 let hasPunctuation = fullTranscript.contains(".") || fullTranscript.contains(",") || fullTranscript.contains("!")
                 print("✅ Full transcript generated:")
@@ -488,7 +481,6 @@ class SpeechRecognitionService {
             } else {
                 print("⚠️ All segments returned empty results")
             }
-            #endif
 
             return fullTranscript
 
