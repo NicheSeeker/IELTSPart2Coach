@@ -7,7 +7,7 @@
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
-	<true/>
+	<false/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>IELTS Part 2 Coach needs microphone access to record your speaking practice for AI feedback analysis.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
