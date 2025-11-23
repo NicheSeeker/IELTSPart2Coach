@@ -118,3 +118,9 @@ config.local.json
 # Documentation with sensitive data
 **/CLAUDE-PRIVATE.md
 **/*-private.md
+
+# Development documentation (internal use only)
+claude.md
+CLAUDE.md
+BACKEND_*.md
+CLOUDFLARE_*.md
