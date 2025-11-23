@@ -10,6 +10,12 @@
 	<false/>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>IELTS Part 2 Coach uses speech recognition to provide optional transcript feedback with filler word highlighting.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>IELTS Part 2 Coach needs local network access to connect to the development server on your Mac for testing.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
