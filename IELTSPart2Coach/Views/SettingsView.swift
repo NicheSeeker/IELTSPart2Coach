@@ -25,7 +25,8 @@ struct SettingsView: View {
                     notificationsSection
 
                     // API Key Section (Phase 5: Keychain security)
-                    apiKeySection
+                    // Backend Migration (2025-11-22): Hidden in backend proxy mode (API key not required)
+                    // apiKeySection  // ← Commented out, code preserved for BYOK rollback
 
                     // Transcript Section (Phase 8.1)
                     transcriptSection

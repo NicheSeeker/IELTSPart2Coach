@@ -110,6 +110,71 @@ class KeychainManager {
             return false
         }
     }
+
+    // MARK: - Device ID (Backend Migration)
+
+    /// Save device ID to Keychain (for backend rate limiting)
+    /// Backend migration (2025-11-22): Device ID replaces API key for backend proxy mode
+    func saveDeviceID(_ id: String) throws {
+        guard !id.isEmpty else {
+            throw KeychainError.emptyKey
+        }
+
+        let keyData = id.data(using: .utf8)!
+
+        // Keychain query dictionary
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: "device_id",
+            kSecValueData as String: keyData
+        ]
+
+        // Delete existing ID first (if any)
+        SecItemDelete(query as CFDictionary)
+
+        // Add new ID
+        let status = SecItemAdd(query as CFDictionary, nil)
+
+        guard status == errSecSuccess else {
+            #if DEBUG
+            print("❌ Failed to save device ID to Keychain: \(status)")
+            #endif
+            throw KeychainError.saveFailed(status: status)
+        }
+
+        #if DEBUG
+        print("✅ Device ID saved to Keychain successfully")
+        #endif
+    }
+
+    /// Retrieve device ID from Keychain
+    func getDeviceID() throws -> String {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: "device_id",
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess else {
+            if status == errSecItemNotFound {
+                throw KeychainError.keyNotFound
+            }
+            throw KeychainError.retrievalFailed(status: status)
+        }
+
+        guard let keyData = result as? Data,
+              let deviceID = String(data: keyData, encoding: .utf8) else {
+            throw KeychainError.invalidData
+        }
+
+        return deviceID
+    }
 }
 
 // MARK: - Error Types

@@ -51,8 +51,13 @@ class GeminiService {
     }
 
     // Backend Migration (2025-11-22): Switched from direct OpenRouter calls to Cloudflare Workers proxy
+    // Smart Device Detection: Auto-switch between simulator and real device
     #if DEBUG
-    private let baseURL = "http://127.0.0.1:8787"  // Wrangler local dev (use IP instead of localhost for iOS simulator)
+        #if targetEnvironment(simulator)
+        private let baseURL = "http://127.0.0.1:8787"  // Simulator: Mac localhost
+        #else
+        private let baseURL = "http://10.0.0.182:8787"  // Real device: Mac LAN IP (check wrangler output if connection fails)
+        #endif
     #else
     private let baseURL = "https://ielts-api.charliewang0322.workers.dev"  // ✅ Production Worker URL
     #endif
