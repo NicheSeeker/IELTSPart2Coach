@@ -20,7 +20,11 @@ class SpeechRecognitionService {
     private let recognizer: SFSpeechRecognizer?
 
     // Audio segmentation constants
-    private let maxSegmentDuration: TimeInterval = 50.0  // 50s per segment (leave 10s buffer)
+    #if DEBUG
+    private let maxSegmentDuration: TimeInterval = 20.0  // Debug: 20s segments for faster testing (60s → 3 segments)
+    #else
+    private let maxSegmentDuration: TimeInterval = 50.0  // Production: 50s per segment (leave 10s buffer)
+    #endif
     private let recognitionTimeout: TimeInterval = 120.0  // 120s timeout per segment (supports 2-min recordings)
 
     // MARK: - Initialization
@@ -165,11 +169,9 @@ class SpeechRecognitionService {
             throw SpeechRecognitionError.audioExportFailed
         }
 
-        #if DEBUG
         let startSeconds = CMTimeGetSeconds(startTime)
         let endSeconds = CMTimeGetSeconds(endTime)
         print("✂️  Segment exported: \(String(format: "%.1f", startSeconds))s - \(String(format: "%.1f", endSeconds))s")
-        #endif
 
         return outputURL
     }
@@ -304,21 +306,17 @@ class SpeechRecognitionService {
                         // Safety timeout (backup mechanism only)
                         // Primary return is now via isFinal callback above
                         Task { @MainActor in
-                            try? await Task.sleep(nanoseconds: 90_000_000_000)  // 90s for 50s audio segments
+                            try? await Task.sleep(nanoseconds: 150_000_000_000)  // 150s safety timeout for real device processing
 
                             let canResume = await accumulator.markResumed()
                             if canResume {
                                 let finalTranscript = await accumulator.getTranscript()
                                 if !finalTranscript.isEmpty {
-                                    #if DEBUG
                                     print("   ⏱️ Safety timeout triggered (backup only)")
-                                    #endif
                                     recognitionTask?.cancel()
                                     continuation.resume(returning: finalTranscript)
                                 } else {
-                                    #if DEBUG
                                     print("   ⚠️ Safety timeout: no transcript accumulated")
-                                    #endif
                                 }
                             }
                         }
@@ -341,16 +339,12 @@ class SpeechRecognitionService {
                 return result
             }
 
-            #if DEBUG
             print("   ✅ Segment complete: \(transcript.count) chars")
-            #endif
 
             return transcript
 
         } catch {
-            #if DEBUG
             print("   ❌ Segment recognition failed: \(error.localizedDescription)")
-            #endif
             return ""
         }
     }
