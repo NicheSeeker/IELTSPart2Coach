@@ -124,3 +124,8 @@ claude.md
 CLAUDE.md
 BACKEND_*.md
 CLOUDFLARE_*.md
+
+# App Store submission documents (internal use only)
+APPSTORE_SUBMISSION_CHECKLIST.md
+REVIEWER_NOTES.txt
+*_NOTES.txt
