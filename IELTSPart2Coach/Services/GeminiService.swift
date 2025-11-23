@@ -50,11 +50,34 @@ class GeminiService {
         }
     }
 
-    private let endpoint = "https://openrouter.ai/api/v1/chat/completions"
+    // Backend Migration (2025-11-22): Switched from direct OpenRouter calls to Cloudflare Workers proxy
+    #if DEBUG
+    private let baseURL = "http://127.0.0.1:8787"  // Wrangler local dev (use IP instead of localhost for iOS simulator)
+    #else
+    private let baseURL = "https://ielts-api.charliewang0322.workers.dev"  // ✅ Production Worker URL
+    #endif
+
     private let model = "google/gemini-2.5-flash"
     private let timeout: TimeInterval = 45.0  // ✅ Optimization 1: Increased from 30s
 
     private init() {}
+
+    // MARK: - Device ID Management (Backend Migration)
+
+    /// Get device ID for backend rate limiting
+    /// Generates new UUID if not exists (lazy initialization)
+    private func getDeviceID() -> String {
+        if let deviceID = try? KeychainManager.shared.getDeviceID() {
+            return deviceID
+        }
+        // Generate new UUID on first API call
+        let newID = UUID().uuidString
+        try? KeychainManager.shared.saveDeviceID(newID)
+        #if DEBUG
+        print("🆔 Generated new device ID: \(newID)")
+        #endif
+        return newID
+    }
 
     // MARK: - API Key Management
 
@@ -90,11 +113,12 @@ class GeminiService {
         // Create request body (text-only, no audio)
         let requestBody = try buildTopicRequestBody(prompt: prompt)
 
-        // Create request
-        var request = URLRequest(url: URL(string: endpoint)!)
+        // Create request (Backend Migration: use Worker endpoint instead of OpenRouter)
+        var request = URLRequest(url: URL(string: "\(baseURL)/generate-topic")!)
         request.httpMethod = "POST"
         request.timeoutInterval = timeout
-        request.allHTTPHeaderFields = try makeHeaders()
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(getDeviceID(), forHTTPHeaderField: "X-Device-ID")
         request.httpBody = requestBody
 
         // Send request
@@ -115,6 +139,12 @@ class GeminiService {
                 return try parseTopicResponse(data: data)
 
             case 429:
+                // Backend Migration: Distinguish daily limit (10/day) from OpenRouter rate limit
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let error = json["error"] as? String,
+                   error == "dailyLimitReached" {
+                    throw GeminiError.dailyLimitReached
+                }
                 throw GeminiError.rateLimited
 
             case 400...499, 500...599:
@@ -157,11 +187,12 @@ class GeminiService {
         // 2. Build request body with duration context
         let requestBody = try buildRequestBody(base64Audio: base64Audio, duration: duration)
 
-        // 3. Create request
-        var request = URLRequest(url: URL(string: endpoint)!)
+        // 3. Create request (Backend Migration: use Worker endpoint instead of OpenRouter)
+        var request = URLRequest(url: URL(string: "\(baseURL)/analyze-speech")!)
         request.httpMethod = "POST"
         request.timeoutInterval = timeout
-        request.allHTTPHeaderFields = try makeHeaders()
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(getDeviceID(), forHTTPHeaderField: "X-Device-ID")
         request.httpBody = requestBody
 
         // 4. Send request (ephemeral config to avoid disk caching audio)
@@ -183,6 +214,12 @@ class GeminiService {
                 return result
 
             case 429:
+                // Backend Migration: Distinguish daily limit (10/day) from OpenRouter rate limit
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let error = json["error"] as? String,
+                   error == "dailyLimitReached" {
+                    throw GeminiError.dailyLimitReached
+                }
                 throw GeminiError.rateLimited
 
             case 400...499, 500...599:
@@ -344,7 +381,11 @@ class GeminiService {
     }
 
     /// Build request headers
-    /// ✅ Phase 5: Now retrieves API key from Keychain
+    /// ✅ Phase 5: Retrieves API key from Keychain (BYOK mode)
+    /// ⚠️ Backend Migration (2025-11-22): Deprecated in backend proxy mode
+    /// Headers now set individually with X-Device-ID instead of Authorization
+    /// Preserved for potential BYOK rollback capability
+    @available(*, deprecated, message: "Use individual header setting with X-Device-ID in backend mode")
     private func makeHeaders() throws -> [String: String] {
         let key = try getAPIKey()
         return [
@@ -650,6 +691,7 @@ enum GeminiError: LocalizedError {
     case rateLimited
     case apiError(statusCode: Int, message: String)
     case missingAPIKey  // ✅ Reserved for Phase 5 (Keychain migration)
+    case dailyLimitReached  // Backend Migration (2025-11-22): 10 requests/day per device
 
     // ✅ Optimization 4: All error messages in English
     var errorDescription: String? {
@@ -666,6 +708,8 @@ enum GeminiError: LocalizedError {
             return "Analysis failed (code: \(statusCode))."
         case .missingAPIKey:
             return "Missing API Key. Please configure it in Settings."
+        case .dailyLimitReached:
+            return "That's all for today. Come back tomorrow to continue practicing."
         }
     }
 }
