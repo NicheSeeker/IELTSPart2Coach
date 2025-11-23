@@ -612,28 +612,43 @@ class RecordingViewModel {
             return
         }
 
-        // ✅ OPTIMIZATION: Play sound effects immediately after session configuration
-        // AVAudioPlayer (Phase 5) doesn't cause I/O conflicts, safe to play during stabilization
-        // Provides faster auditory feedback to user (300ms earlier than before)
-        haptics.recordingStart()
-        soundEffects.playRecordStart()
-
         // Wait 300ms for session to stabilize before starting recorder
         // Prevents I/O conflicts during session activation
         try? await Task.sleep(nanoseconds: 300_000_000)
 
-        // Start recording
+        // Start recording hardware (but don't show "recording" UI yet)
         do {
             try audioRecorder.startRecording()
-            state = .recording
-            elapsedTime = 0
-            showStopButton = false
 
             // Mark session as active for crash recovery
             setActiveSessionFlag()
 
+            #if DEBUG
+            print("🎤 Recording hardware started, waiting for stabilization...")
+            #endif
+
+            // ✅ Bug Fix (2025-11-23): Play sound effects AFTER recorder starts
+            // This gives user an audible cue to wait before speaking
+            haptics.recordingStart()
+            soundEffects.playRecordStart()
+
+            // ✅ CRITICAL: Wait 300ms for hardware to fully stabilize
+            // This prevents losing first words spoken immediately after prep countdown
+            // User hears the "ding" sound and naturally waits ~300ms before speaking
+            try? await Task.sleep(nanoseconds: 300_000_000)
+
+            // NOW show "recording" state (user can start speaking)
+            state = .recording
+            elapsedTime = 0
+            showStopButton = false
+
             // Start recording timer
             startRecordingTimer()
+
+            #if DEBUG
+            print("✅ Recording UI activated, ready to capture speech")
+            #endif
+
         } catch {
             print("❌ Failed to start recording: \(error.localizedDescription)")
 
@@ -652,6 +667,14 @@ class RecordingViewModel {
 
     /// Stop recording manually
     func stopRecording() {
+        // ✅ Bug Fix (2025-11-23): Use delegate callback instead of Task.sleep
+        // Set callback BEFORE calling stop() to ensure we catch the event
+        audioRecorder.onRecordingFinished = { [weak self] url in
+            Task { @MainActor [weak self] in
+                await self?.handleRecordingFinished(url: url)
+            }
+        }
+
         audioRecorder.stopRecording()
         stopTimer()
         state = .finished
@@ -659,31 +682,35 @@ class RecordingViewModel {
         // Clear active session flag (recording completed)
         clearActiveSessionFlag()
 
-        // CRITICAL: Wait 500ms before loading AudioPlayer
-        // Prevents I/O conflicts between stopping recorder and starting player
-        // This delay ensures AVAudioRecorder fully releases audio resources
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5s delay
+        #if DEBUG
+        print("🎤 Waiting for recording file to be fully written...")
+        #endif
+    }
 
-            // Load audio for playback
-            if let url = audioRecorder.currentAudioURL {
-                do {
-                    try audioPlayer.load(url: url)
-                    #if DEBUG
-                    print("✅ Audio loaded for playback")
-                    #endif
-                } catch {
-                    print("❌ Failed to load audio for playback: \(error)")
-                }
-            }
+    /// Handle recording completion after file is fully written to disk
+    /// ✅ Bug Fix (2025-11-23): Called by AudioRecorder delegate, not Task.sleep
+    private func handleRecordingFinished(url: URL) async {
+        #if DEBUG
+        print("✅ Recording file ready for processing")
+        #endif
 
-            // Play sound effects after loading is complete
-            haptics.recordingStop()
-            soundEffects.playRecordStop()
-
-            // Phase 7.1: Auto-save recording to persistence layer
-            await saveCurrentSession()
+        // Load audio for playback
+        do {
+            try audioPlayer.load(url: url)
+            #if DEBUG
+            print("✅ Audio loaded for playback")
+            #endif
+        } catch {
+            print("❌ Failed to load audio for playback: \(error)")
         }
+
+        // Play sound effects
+        haptics.recordingStop()
+        soundEffects.playRecordStop()
+
+        // Phase 7.1: Auto-save recording to persistence layer
+        // File is now complete, safe for transcription
+        await saveCurrentSession()
     }
 
     /// Save current recording session to persistence storage (Phase 7.1)

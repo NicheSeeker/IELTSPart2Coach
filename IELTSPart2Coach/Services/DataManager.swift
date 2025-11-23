@@ -25,6 +25,9 @@ class DataManager {
     private var topicHistories: [UUID: TopicHistory] = [:]
     private var progress: UserProgress = UserProgress()
 
+    // ✅ Memory optimization: Limit maximum sessions in memory to prevent unbounded growth
+    private let maxSessions = 1000  // ~5MB max (5KB per session)
+
     // MARK: - File Paths
 
     private let fileManager = FileManager.default
@@ -177,6 +180,29 @@ class DataManager {
         )
 
         sessions.append(session)
+
+        // ✅ Memory fix: Trim old sessions if exceeding limit
+        if sessions.count > maxSessions {
+            let trimCount = sessions.count - maxSessions
+            let oldSessions = sessions
+                .sorted { $0.date < $1.date }  // Oldest first
+                .prefix(trimCount)
+
+            #if DEBUG
+            print("⚠️ Trimming \(trimCount) old sessions (limit: \(maxSessions))")
+            #endif
+
+            // Remove oldest sessions from array
+            for oldSession in oldSessions {
+                if let index = sessions.firstIndex(where: { $0.id == oldSession.id }) {
+                    sessions.remove(at: index)
+
+                    // Also delete audio file to free disk space
+                    try? deleteAudioFile(at: oldSession.audioFileURL)
+                }
+            }
+        }
+
         try persistSessions()
 
         try updateTopicHistory(for: topicID, with: session)
@@ -186,7 +212,7 @@ class DataManager {
         }
 
         #if DEBUG
-        print("✅ PracticeSession saved: \(sessionID)")
+        print("✅ PracticeSession saved: \(sessionID) (total: \(sessions.count)/\(maxSessions))")
         #endif
     }
 

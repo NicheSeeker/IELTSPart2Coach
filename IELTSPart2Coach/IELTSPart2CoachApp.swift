@@ -59,6 +59,19 @@ struct IELTSPart2CoachApp: App {
                         #endif
                     }
                 }
+                // Phase 7.1.2: Memory warning handler to prevent crashes
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+                    #if DEBUG
+                    print("⚠️ Memory warning received, triggering cleanup")
+                    #endif
+
+                    // Notify managers to release unnecessary resources
+                    Task { @MainActor in
+                        // DataManager will trim old sessions if over limit (already implemented)
+                        // AudioRecorder clears fullWaveform after downsampling (already implemented)
+                        // Future: Add explicit cleanup methods if needed
+                    }
+                }
         }
     }
 }

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- MARK: - Tracking Status -->
+	<!-- IELTS Part 2 Coach does NOT track users across apps/websites -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<!-- MARK: - Data Collection -->
+	<!-- Audio recordings are stored locally only, used for AI feedback analysis -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<!-- Audio Data -->
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeAudioData</string>
+
+			<!-- Linked to user identity (stored locally with session metadata) -->
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+
+			<!-- Used for app functionality (AI feedback analysis) -->
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+
+			<!-- Purpose: App functionality - Recording speaking practice -->
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- MARK: - Required Reason API Usage -->
+	<!-- UserDefaults used for storing app preferences and user settings -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- API Category: UserDefaults -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+
+			<!-- Reason Code: CA92.1 - Accessing user defaults to read/write app internal state -->
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<!-- API Category: File Timestamp -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+
+			<!-- Reason Code: C617.1 - Accessing file timestamps to manage audio recording files -->
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- MARK: - Third-Party SDKs -->
+	<!-- No third-party tracking SDKs used -->
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+</dict>
+</plist>

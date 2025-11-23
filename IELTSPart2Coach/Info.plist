@@ -7,39 +7,39 @@
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>IELTS Part 2 Coach needs microphone access to record your speaking practice for AI feedback analysis.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>IELTS Part 2 Coach uses speech recognition to provide optional transcript feedback with filler word highlighting.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>IELTS Part 2 Coach needs local network access to connect to the development server on your Mac for testing.</string>
+	<string>IELTS Part 2 Coach connects to local devices for enhanced features and debugging support.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_http._tcp</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>localhost</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
 			</dict>
 			<key>127.0.0.1</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
-			<key>10.0.0.182</key>
+			<key>CharliedeMacBook-Pro.local</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.0</string>
+				<string>TLSv1.2</string>
 			</dict>
 		</dict>
 	</dict>

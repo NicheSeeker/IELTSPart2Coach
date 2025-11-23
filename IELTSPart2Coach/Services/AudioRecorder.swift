@@ -28,6 +28,12 @@ class AudioRecorder: NSObject {
     private let maxLevels = 30 // Number of samples to keep for real-time display
     private let savedWaveformSamples = 60 // Target sample count for playback visualization
 
+    // MARK: - Completion Callback
+
+    /// Callback invoked when recording finishes and file is fully written to disk
+    /// ✅ Bug Fix (2025-11-23): Use this instead of Task.sleep to ensure file is complete
+    var onRecordingFinished: ((URL) -> Void)?
+
     // MARK: - Initialization
 
     override init() {
@@ -221,6 +227,7 @@ class AudioRecorder: NSObject {
     // MARK: - Waveform Processing
 
     /// Downsample the full waveform to a fixed number of samples for playback
+    /// ✅ Memory fix: Clear fullWaveform after downsampling to prevent memory leak
     private func downsampleWaveform() {
         guard !fullWaveform.isEmpty else {
             savedWaveform = []
@@ -232,6 +239,8 @@ class AudioRecorder: NSObject {
         // If we have fewer samples than target, just use what we have
         if totalSamples <= savedWaveformSamples {
             savedWaveform = fullWaveform
+            // ✅ Memory fix: Clear fullWaveform immediately
+            fullWaveform.removeAll(keepingCapacity: false)
             return
         }
 
@@ -251,6 +260,13 @@ class AudioRecorder: NSObject {
         }
 
         savedWaveform = downsampled
+
+        // ✅ Memory fix: Clear fullWaveform after downsampling (releases ~10KB per recording)
+        fullWaveform.removeAll(keepingCapacity: false)
+
+        #if DEBUG
+        print("💾 fullWaveform cleared after downsampling (saved \(totalSamples * 4) bytes)")
+        #endif
     }
 
     // MARK: - Errors
@@ -278,6 +294,18 @@ extension AudioRecorder: AVAudioRecorderDelegate {
             if !flag {
                 print("⚠️ Recording finished with error")
                 deleteRecording()
+            } else {
+                // ✅ Bug Fix (2025-11-23): Recording file is now fully written to disk
+                // Invoke callback to notify ViewModel it's safe to process the file
+                if let url = currentAudioURL {
+                    #if DEBUG
+                    print("✅ Recording file fully written: \(url.lastPathComponent)")
+                    #endif
+
+                    onRecordingFinished?(url)
+                } else {
+                    print("⚠️ Recording finished but no URL available")
+                }
             }
         }
     }

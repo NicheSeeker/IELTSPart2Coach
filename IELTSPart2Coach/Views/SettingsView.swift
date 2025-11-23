@@ -28,6 +28,11 @@ struct SettingsView: View {
                     // Backend Migration (2025-11-22): Hidden in backend proxy mode (API key not required)
                     // apiKeySection  // ← Commented out, code preserved for BYOK rollback
 
+                    #if DEBUG
+                    // Developer Backend Configuration (DEBUG only)
+                    developerBackendSection
+                    #endif
+
                     // Transcript Section (Phase 8.1)
                     transcriptSection
 
@@ -69,6 +74,77 @@ struct SettingsView: View {
             }
         }
     }
+
+    // MARK: - Developer Backend Section (DEBUG only)
+
+    #if DEBUG
+    private var developerBackendSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 16) {
+                // Current Backend URL Display
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Current Backend")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+
+                    Text(GeminiService.shared.getCurrentBackendURL())
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                }
+
+                Divider()
+
+                // Manual URL Input
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Cloudflare Tunnel URL")
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+
+                    TextField("https://abc-123.trycloudflare.com", text: Binding(
+                        get: { UserDefaults.standard.string(forKey: "manualBackendURL") ?? "" },
+                        set: { UserDefaults.standard.set($0, forKey: "manualBackendURL") }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 14, weight: .regular, design: .rounded))
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+
+                    Text("Paste the URL from `cloudflared tunnel` output. Leave empty to use .local hostname.")
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                // Clear Button
+                if let url = UserDefaults.standard.string(forKey: "manualBackendURL"), !url.isEmpty {
+                    Button(role: .destructive) {
+                        UserDefaults.standard.removeObject(forKey: "manualBackendURL")
+                    } label: {
+                        HStack {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 14))
+                            Text("Clear Custom URL")
+                                .font(.system(size: 14, weight: .regular, design: .rounded))
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Developer Options")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+        } footer: {
+            Text("⚠️ DEBUG MODE ONLY: This section is hidden in Release builds.")
+                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .foregroundStyle(.orange)
+        }
+    }
+    #endif
 
     // MARK: - Notifications Section
 

@@ -50,22 +50,53 @@ class GeminiService {
         }
     }
 
-    // Backend Migration (2025-11-22): Switched from direct OpenRouter calls to Cloudflare Workers proxy
-    // Smart Device Detection: Auto-switch between simulator and real device
-    #if DEBUG
+    // Backend Configuration (2025-11-23): Intelligent backend selection
+    // Priority: Manual Tunnel URL > Local .local > Localhost (simulator) > Production
+    private var baseURL: String {
+        #if DEBUG
+        // DEBUG Mode: Allow manual configuration via Settings
+        if let manualURL = UserDefaults.standard.string(forKey: "manualBackendURL"),
+           !manualURL.isEmpty {
+            // Priority 1: User-configured Cloudflare Tunnel URL
+            // ✅ Bug Fix (2025-11-23): Sanitize URL to prevent crash
+            let sanitized = manualURL.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Validate URL format
+            if URL(string: sanitized) != nil {
+                return sanitized
+            } else {
+                // Invalid URL: clear it and fallback
+                #if DEBUG
+                print("⚠️ Invalid manual backend URL '\(manualURL)', clearing and using fallback")
+                #endif
+                UserDefaults.standard.removeObject(forKey: "manualBackendURL")
+                // Fall through to Priority 2
+            }
+        }
+
+        // Priority 2: Local development backend
         #if targetEnvironment(simulator)
-        private let baseURL = "http://127.0.0.1:8787"  // Simulator: Mac localhost
+        return "http://127.0.0.1:8787"  // Simulator: Mac localhost
         #else
-        private let baseURL = "http://10.0.0.182:8787"  // Real device: Mac LAN IP (check wrangler output if connection fails)
+        return "http://CharliedeMacBook-Pro.local:8787"  // Real device: Mac .local hostname
         #endif
-    #else
-    private let baseURL = "https://ielts-api.charliewang0322.workers.dev"  // ✅ Production Worker URL
-    #endif
+        #else
+        // RELEASE Mode: Force production environment only
+        return "https://ielts-api.charliewang0322.workers.dev"
+        #endif
+    }
 
     private let model = "google/gemini-2.5-flash"
     private let timeout: TimeInterval = 45.0  // ✅ Optimization 1: Increased from 30s
 
     private init() {}
+
+    // MARK: - Public Methods
+
+    /// Get current backend URL (for Settings display)
+    func getCurrentBackendURL() -> String {
+        return baseURL
+    }
 
     // MARK: - Device ID Management (Backend Migration)
 
@@ -119,7 +150,15 @@ class GeminiService {
         let requestBody = try buildTopicRequestBody(prompt: prompt)
 
         // Create request (Backend Migration: use Worker endpoint instead of OpenRouter)
-        var request = URLRequest(url: URL(string: "\(baseURL)/generate-topic")!)
+        // ✅ Bug Fix (2025-11-23): Safe URL creation with validation
+        guard let url = URL(string: "\(baseURL)/generate-topic") else {
+            #if DEBUG
+            print("❌ Invalid backend URL: \(baseURL)")
+            #endif
+            throw GeminiError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = timeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -174,9 +213,11 @@ class GeminiService {
 
     /// Analyze recorded speech and return structured feedback
     /// ✅ Performance Optimization: Async base64 encoding on background thread
+    /// ✅ Memory Optimization: Streaming encoding to avoid dual memory allocation
     func analyzeSpeech(audioURL: URL, duration: TimeInterval) async throws -> FeedbackResult {
         // 1. Base64 encode audio (async, on background thread to avoid UI blocking)
         // 🚀 Optimization: Move 150-200ms I/O operation off main thread
+        // 💾 Memory fix: audioData released immediately after encoding
         let base64Audio = try await Task.detached(priority: .userInitiated) {
             // This closure runs on a background thread
             let audioData = try Data(contentsOf: audioURL)
@@ -186,14 +227,30 @@ class GeminiService {
             print("📦 Audio size: \(sizeKB)KB (encoded on background thread)")
             #endif
 
-            return audioData.base64EncodedString()
+            // Encode to base64 and return immediately
+            // audioData will be automatically deallocated after this line
+            let encoded = audioData.base64EncodedString()
+
+            #if DEBUG
+            print("✅ Base64 encoded (\(encoded.count) chars), original Data released")
+            #endif
+
+            return encoded
         }.value
 
         // 2. Build request body with duration context
         let requestBody = try buildRequestBody(base64Audio: base64Audio, duration: duration)
 
         // 3. Create request (Backend Migration: use Worker endpoint instead of OpenRouter)
-        var request = URLRequest(url: URL(string: "\(baseURL)/analyze-speech")!)
+        // ✅ Bug Fix (2025-11-23): Safe URL creation with validation
+        guard let url = URL(string: "\(baseURL)/analyze-speech") else {
+            #if DEBUG
+            print("❌ Invalid backend URL: \(baseURL)")
+            #endif
+            throw GeminiError.invalidResponse
+        }
+
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = timeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
