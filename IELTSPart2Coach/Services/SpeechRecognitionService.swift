@@ -76,30 +76,19 @@ class SpeechRecognitionService {
     /// Determine optimal recognition mode based on audio input device
     /// - Returns: true for on-device recognition, false for server-based
     private func shouldUseOnDeviceRecognition() -> Bool {
-        let session = AVAudioSession.sharedInstance()
-        guard let input = session.currentRoute.inputs.first else {
-            // No input detected, default to on-device (safer fallback)
-            return true
-        }
+        // ⚠️ TEMPORARY FIX: Force server-based recognition for better transcript quality
+        // User reported on-device recognition only captured ~30-40 words from 59s recording
+        // Server-based typically provides higher accuracy, especially for longer audio
+        // TODO: Re-evaluate after testing server-based quality
 
-        // Bluetooth devices (phone call quality) → Server-based
-        // Reason: On-device models require high-quality audio (≥16kHz)
-        //         BluetoothHFP degrades to ~8kHz, causing recognition failure
-        if input.portType == .bluetoothHFP || input.portType == .bluetoothA2DP {
-            #if DEBUG
-            print("🎧 Bluetooth device detected (\(input.portName))")
-            print("🎧 Using server-based recognition (accuracy priority)")
-            #endif
-            return false
-        }
-
-        // Built-in mic, wired headphones → On-device
-        // Reason: High-quality audio, best recognition + punctuation support
         #if DEBUG
-        print("🎤 High-quality input detected (\(input.portName))")
-        print("🎤 Using on-device recognition (optimal quality)")
+        let session = AVAudioSession.sharedInstance()
+        let input = session.currentRoute.inputs.first
+        print("🎤 Input device: \(input?.portName ?? "Unknown")")
+        print("📡 FORCING server-based recognition (quality improvement)")
         #endif
-        return true
+
+        return false  // Always use server-based for better accuracy
     }
 
     // MARK: - Audio Duration Detection
@@ -410,6 +399,8 @@ class SpeechRecognitionService {
                 print("   Length: \(transcript.count) chars")
                 print("   Punctuation detected: \(hasPunctuation ? "Yes" : "No")")
                 print("   Preview: \(transcript.prefix(100))...")
+                print("📝 FULL TRANSCRIPT (for debugging):")
+                print("   \"\(transcript)\"")
             }
             #endif
 
@@ -472,6 +463,8 @@ class SpeechRecognitionService {
                 print("   Segments processed: \(segmentCount)")
                 print("   Punctuation detected: \(hasPunctuation ? "Yes" : "No")")
                 print("   Preview: \(fullTranscript.prefix(100))...")
+                print("📝 FULL TRANSCRIPT (for debugging):")
+                print("   \"\(fullTranscript)\"")
             } else {
                 print("⚠️ All segments returned empty results")
             }

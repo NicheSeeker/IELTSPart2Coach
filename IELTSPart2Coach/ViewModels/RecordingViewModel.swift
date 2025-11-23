@@ -570,17 +570,19 @@ class RecordingViewModel {
     private func onPreparationComplete() async {
         stopTimer()
 
-        // Phase 4.6: Show transition overlay (1.2s)
-        showTransitionOverlay = true
-        haptics.light()  // First feedback: "Get ready"
-
-        // Wait 1.2 seconds for transition
-        try? await Task.sleep(nanoseconds: 1_200_000_000)
-
-        // Start recording
+        // ✅ CRITICAL FIX: Start recording FIRST to capture user's immediate speech
+        // Transition overlay shown during recording (non-blocking)
         await startRecording()
 
-        // Hide transition overlay
+        // Phase 4.6: Show transition overlay DURING recording (1.2s)
+        // This prevents losing first words when user starts speaking immediately
+        showTransitionOverlay = true
+        haptics.light()  // Feedback: "Recording has started"
+
+        // Keep overlay visible for 1.2s during active recording
+        try? await Task.sleep(nanoseconds: 1_200_000_000)
+
+        // Hide transition overlay (recording continues)
         showTransitionOverlay = false
     }
 
@@ -610,6 +612,12 @@ class RecordingViewModel {
             return
         }
 
+        // ✅ OPTIMIZATION: Play sound effects immediately after session configuration
+        // AVAudioPlayer (Phase 5) doesn't cause I/O conflicts, safe to play during stabilization
+        // Provides faster auditory feedback to user (300ms earlier than before)
+        haptics.recordingStart()
+        soundEffects.playRecordStart()
+
         // Wait 300ms for session to stabilize before starting recorder
         // Prevents I/O conflicts during session activation
         try? await Task.sleep(nanoseconds: 300_000_000)
@@ -623,15 +631,6 @@ class RecordingViewModel {
 
             // Mark session as active for crash recovery
             setActiveSessionFlag()
-
-            // Bug Fix: Delay sound effects and haptics by 0.5s to avoid I/O conflict
-            // AVAudioRecorder needs exclusive audio thread access at startup
-            // Playing sounds immediately causes "player did not see an IO cycle" crash
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5s delay
-                haptics.recordingStart()
-                soundEffects.playRecordStart()
-            }
 
             // Start recording timer
             startRecordingTimer()

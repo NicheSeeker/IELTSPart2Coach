@@ -22,6 +22,21 @@ struct QuestionCardView: View {
     @State private var hasInitialized = false  // ✅ FIX: Track initialization state
     @State private var isPromptsExpanded = false  // Phase 8.2: Collapsible prompts control
 
+    // MARK: - Computed Properties
+
+    /// Check if current error is daily limit error (hide Retry button)
+    private var isDailyLimitError: Bool {
+        if let error = viewModel.analysisError as? GeminiError {
+            switch error {
+            case .dailyLimitReached:
+                return true
+            default:
+                return false
+            }
+        }
+        return false
+    }
+
     var body: some View {
         ZStack {
             // Background (Phase 5: Adaptive for Dark Mode)
@@ -153,16 +168,25 @@ struct QuestionCardView: View {
         .sheet(isPresented: $showSettingsView) {
             SettingsView()
         }
-        .alert("Analysis Failed", isPresented: Binding(
-            get: { viewModel.analysisError != nil },
-            set: { if !$0 { viewModel.analysisError = nil } }
-        )) {
-            Button("OK", role: .cancel) {
+        .alert(
+            // Dynamic title based on error type
+            isDailyLimitError ? "Daily Limit Reached" : "Analysis Failed",
+            isPresented: Binding(
+                get: { viewModel.analysisError != nil },
+                set: { if !$0 { viewModel.analysisError = nil } }
+            )
+        ) {
+            // Primary button (text varies by error type)
+            Button(isDailyLimitError ? "Come back tomorrow" : "OK", role: .cancel) {
                 viewModel.analysisError = nil
             }
-            Button("Retry") {
-                Task {
-                    await viewModel.analyzeRecording()
+
+            // Retry button (hidden for daily limit errors)
+            if !isDailyLimitError {
+                Button("Retry") {
+                    Task {
+                        await viewModel.analyzeRecording()
+                    }
                 }
             }
         } message: {
