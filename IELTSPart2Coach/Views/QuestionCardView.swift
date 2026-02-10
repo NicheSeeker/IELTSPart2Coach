@@ -77,11 +77,11 @@ struct QuestionCardView: View {
                 .transition(.opacity.combined(with: .scale))
             }
 
-            // Settings Button (Phase 7.3: Only visible in idle state)
+            // History Button (top-left, only visible in idle state)
             if viewModel.state == .idle {
                 VStack {
                     HStack {
-                        settingsButton
+                        historyButton
                             .padding(.top, 24)
                             .padding(.leading, 24)
                         Spacer()
@@ -91,13 +91,13 @@ struct QuestionCardView: View {
                 .transition(.opacity)
             }
 
-            // History Button (Phase 7.2: Only visible in idle state)
+            // Settings Button (top-right, only visible in idle state)
             if viewModel.state == .idle {
                 VStack {
                     HStack {
                         Spacer()
-                        historyButton
-                            .padding(.top, 24)  // Phase 7.2 Fix: Minimal padding to stay near top, away from question card
+                        settingsButton
+                            .padding(.top, 24)
                             .padding(.trailing, 24)
                     }
                     Spacer()
