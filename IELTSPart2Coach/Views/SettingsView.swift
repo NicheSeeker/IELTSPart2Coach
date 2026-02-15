@@ -39,6 +39,9 @@ struct SettingsView: View {
                     // Data Management Section
                     dataManagementSection
 
+                    // Feedback Section
+                    feedbackSection
+
                     // About Section
                     aboutSection
                 }
@@ -315,6 +318,69 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Feedback Section
+
+    private var feedbackSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                // Text input
+                ZStack(alignment: .topLeading) {
+                    if viewModel.feedbackText.isEmpty {
+                        Text("Share your thoughts...")
+                            .font(.system(size: 15, weight: .regular, design: .rounded))
+                            .foregroundStyle(.tertiary)
+                            .padding(.top, 8)
+                            .padding(.leading, 4)
+                    }
+
+                    TextEditor(text: $viewModel.feedbackText)
+                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                        .frame(minHeight: 80, maxHeight: 120)
+                        .scrollContentBackground(.hidden)
+                }
+
+                // Footer text + Send button
+                HStack {
+                    Text("Help us improve this app.")
+                        .font(.system(size: 13, weight: .regular, design: .rounded))
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Button {
+                        Task {
+                            await viewModel.submitFeedback()
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if viewModel.isSendingFeedback {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                            } else if viewModel.feedbackSent {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 13, weight: .semibold))
+                                Text("Sent")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                            } else {
+                                Image(systemName: "paperplane")
+                                    .font(.system(size: 13))
+                                Text("Send")
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                            }
+                        }
+                        .foregroundStyle(viewModel.feedbackSent ? .green : .blue)
+                    }
+                    .disabled(viewModel.feedbackText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isSendingFeedback || viewModel.feedbackSent)
+                }
+            }
+        } header: {
+            Text("Feedback")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+        }
+    }
+
     // MARK: - About Section
 
     private var aboutSection: some View {
@@ -389,6 +455,11 @@ class SettingsViewModel {
     var exportedFileURL: URL?
     var showAPIKeySheet = false  // Phase 5: API key management sheet
 
+    // Feedback state
+    var feedbackText = ""
+    var isSendingFeedback = false
+    var feedbackSent = false
+
     // MARK: - Computed Properties
 
     var audioSizeText: String {
@@ -443,6 +514,39 @@ class SettingsViewModel {
             #endif
         }
     }
+
+    // MARK: - Feedback
+
+    func submitFeedback() async {
+        let text = feedbackText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+
+        isSendingFeedback = true
+
+        do {
+            try await GeminiService.shared.submitFeedback(text: text)
+            feedbackSent = true
+            feedbackText = ""
+
+            // Reset "Sent" state after 3 seconds
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                feedbackSent = false
+            }
+
+            #if DEBUG
+            print("✅ Feedback submitted successfully")
+            #endif
+        } catch {
+            #if DEBUG
+            print("❌ Failed to submit feedback: \(error)")
+            #endif
+        }
+
+        isSendingFeedback = false
+    }
+
+    // MARK: - Export
 
     func exportData() {
         do {

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 @MainActor
 class GeminiService {
@@ -303,6 +304,42 @@ class GeminiService {
             }
             throw GeminiError.networkError(error)
         }
+    }
+
+    // MARK: - Feedback Submission
+
+    /// Submit user feedback to backend
+    func submitFeedback(text: String) async throws {
+        guard let url = URL(string: "\(baseURL)/submit-feedback") else {
+            throw GeminiError.invalidResponse
+        }
+
+        let body: [String: String] = [
+            "feedback": text,
+            "deviceId": getDeviceID(),
+            "appVersion": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
+            "iosVersion": UIDevice.current.systemVersion
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 15
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(getDeviceID(), forHTTPHeaderField: "X-Device-ID")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let config = URLSessionConfiguration.ephemeral
+        let session = URLSession(configuration: config)
+        let (_, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw GeminiError.invalidResponse
+        }
+
+        #if DEBUG
+        print("✅ Feedback submitted to backend")
+        #endif
     }
 
     // MARK: - Private Helpers
@@ -753,7 +790,7 @@ enum GeminiError: LocalizedError {
     case rateLimited
     case apiError(statusCode: Int, message: String)
     case missingAPIKey  // ✅ Reserved for Phase 5 (Keychain migration)
-    case dailyLimitReached  // Backend Migration (2025-11-22): 10 requests/day per device
+    case dailyLimitReached  // 30 requests/day per device
 
     // ✅ Optimization 4: All error messages in English
     var errorDescription: String? {
@@ -771,7 +808,7 @@ enum GeminiError: LocalizedError {
         case .missingAPIKey:
             return "Missing API Key. Please configure it in Settings."
         case .dailyLimitReached:
-            return "That's all for today. Come back tomorrow to continue practicing."
+            return "You've reached today's limit of 30 analyses. Come back tomorrow to continue."
         }
     }
 }

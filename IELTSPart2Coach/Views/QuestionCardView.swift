@@ -177,7 +177,7 @@ struct QuestionCardView: View {
             )
         ) {
             // Primary button (text varies by error type)
-            Button(isDailyLimitError ? "Come back tomorrow" : "OK", role: .cancel) {
+            Button(isDailyLimitError ? "Got it" : "OK", role: .cancel) {
                 viewModel.analysisError = nil
             }
 

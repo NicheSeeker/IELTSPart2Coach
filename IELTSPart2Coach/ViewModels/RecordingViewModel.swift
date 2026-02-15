@@ -923,6 +923,9 @@ class RecordingViewModel {
                 await updateSessionFeedback(sessionID: sessionID, feedback: result)
             }
 
+            // Request App Store review at milestone sessions
+            AppReviewManager.shared.requestReviewIfAppropriate()
+
             // Phase 7.4 Fix: DO NOT trigger pre-prompt here (causes Alert/Sheet conflict)
             // Pre-prompt now triggers AFTER FeedbackView dismissal (see playAgain/recordAgain/onNewTopic)
         } catch {
