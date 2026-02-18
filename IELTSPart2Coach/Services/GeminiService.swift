@@ -13,44 +13,6 @@ import UIKit
 class GeminiService {
     static let shared = GeminiService()
 
-    // ✅ Phase 5: Secure API Key Management
-    // Priority 1: Keychain (encrypted at rest)
-    // Priority 2: Environment variable (Xcode simulator only)
-    // Priority 3: First-launch migration (one-time automatic setup)
-    private func getAPIKey() throws -> String {
-        // Priority 1: Try Keychain first
-        do {
-            let key = try KeychainManager.shared.getAPIKey()
-            #if DEBUG
-            print("✅ API key loaded from Keychain")
-            #endif
-            return key
-        } catch KeychainError.keyNotFound {
-            // First launch: Try environment variable (simulator only)
-            #if DEBUG
-            print("🔐 API key not found in Keychain")
-            #endif
-
-            // Priority 2: Check environment variable (simulator)
-            if let envKey = ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"], !envKey.isEmpty {
-                #if DEBUG
-                print("✅ Using API key from environment variable")
-                #endif
-                try KeychainManager.shared.saveAPIKey(envKey)
-                return envKey
-            }
-
-            // No API key available - user must configure via Settings
-            #if DEBUG
-            print("❌ No API key found. Please configure in Settings → AI Service")
-            #endif
-            throw GeminiError.missingAPIKey
-        } catch {
-            // Failed to retrieve from Keychain
-            throw GeminiError.missingAPIKey
-        }
-    }
-
     // Backend Configuration (2025-11-23): Intelligent backend selection
     // Priority: Manual Tunnel URL > Local .local > Localhost (simulator) > Production
     private var baseURL: String {
@@ -477,22 +439,6 @@ class GeminiService {
         ]
 
         return try JSONSerialization.data(withJSONObject: body)
-    }
-
-    /// Build request headers
-    /// ✅ Phase 5: Retrieves API key from Keychain (BYOK mode)
-    /// ⚠️ Backend Migration (2025-11-22): Deprecated in backend proxy mode
-    /// Headers now set individually with X-Device-ID instead of Authorization
-    /// Preserved for potential BYOK rollback capability
-    @available(*, deprecated, message: "Use individual header setting with X-Device-ID in backend mode")
-    private func makeHeaders() throws -> [String: String] {
-        let key = try getAPIKey()
-        return [
-            "Authorization": "Bearer \(key)",
-            "Content-Type": "application/json",
-            "X-Title": "IELTSPart2Coach",
-            "Referer": "https://com.Charlie.IELTSPart2Coach"
-        ]
     }
 
     /// Parse API response

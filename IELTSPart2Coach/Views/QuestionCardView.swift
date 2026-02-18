@@ -10,7 +10,6 @@ import SwiftUI
 
 struct QuestionCardView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @EnvironmentObject var deepLinkHandler: DeepLinkHandler  // Phase 7.4: Deep link handling
     // ✅ FIX: Using @State with @Observable (iOS 17+ observation framework)
     // The viewModel is properly initialized once and won't be recreated on rebuilds
     // This prevents multiple Timer instances and state corruption on iPhone 16
@@ -233,13 +232,6 @@ struct QuestionCardView: View {
                 message: "Using backup topic. New AI topic will appear when online.",
                 isPresented: $viewModel.showFallbackToast
             )
-        }
-        .onChange(of: deepLinkHandler.pendingTopicID) { oldValue, newValue in
-            // Phase 7.4: Handle notification deep link
-            if let topicID = newValue {
-                viewModel.loadSpecificTopic(topicID: topicID)
-                deepLinkHandler.clearPendingDeepLink()
-            }
         }
         .task {
             // ✅ FIX: Defer initialization work to prevent main thread blocking

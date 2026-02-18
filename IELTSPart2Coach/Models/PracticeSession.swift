@@ -102,29 +102,6 @@ extension PracticeSession {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    /// Relative date string ("Today", "Yesterday", "3 days ago")
-    var relativeDateString: String {
-        let calendar = Calendar.current
-        let now = Date()
-
-        if calendar.isDateInToday(date) {
-            return "Today"
-        } else if calendar.isDateInYesterday(date) {
-            return "Yesterday"
-        } else {
-            let days = calendar.dateComponents([.day], from: date, to: now).day ?? 0
-            if days < 7 {
-                return "\(days) days ago"
-            } else if days < 30 {
-                let weeks = days / 7
-                return weeks == 1 ? "1 week ago" : "\(weeks) weeks ago"
-            } else {
-                let months = calendar.dateComponents([.month], from: date, to: now).month ?? 0
-                return months == 1 ? "1 month ago" : "\(months) months ago"
-            }
-        }
-    }
-
     /// Absolute date string (for grouping in History)
     var absoluteDateString: String {
         let formatter = DateFormatter()

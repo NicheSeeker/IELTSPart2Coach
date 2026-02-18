@@ -158,9 +158,11 @@ class SpeechRecognitionService {
             throw SpeechRecognitionError.audioExportFailed
         }
 
+        #if DEBUG
         let startSeconds = CMTimeGetSeconds(startTime)
         let endSeconds = CMTimeGetSeconds(endTime)
         print("✂️  Segment exported: \(String(format: "%.1f", startSeconds))s - \(String(format: "%.1f", endSeconds))s")
+        #endif
 
         return outputURL
     }
@@ -301,11 +303,15 @@ class SpeechRecognitionService {
                             if canResume {
                                 let finalTranscript = await accumulator.getTranscript()
                                 if !finalTranscript.isEmpty {
+                                    #if DEBUG
                                     print("   ⏱️ Safety timeout triggered (backup only)")
+                                    #endif
                                     recognitionTask?.cancel()
                                     continuation.resume(returning: finalTranscript)
                                 } else {
+                                    #if DEBUG
                                     print("   ⚠️ Safety timeout: no transcript accumulated")
+                                    #endif
                                 }
                             }
                         }
@@ -328,12 +334,16 @@ class SpeechRecognitionService {
                 return result
             }
 
+            #if DEBUG
             print("   ✅ Segment complete: \(transcript.count) chars")
+            #endif
 
             return transcript
 
         } catch {
+            #if DEBUG
             print("   ❌ Segment recognition failed: \(error.localizedDescription)")
+            #endif
             return ""
         }
     }
@@ -388,7 +398,9 @@ class SpeechRecognitionService {
 
         // Short audio: Direct recognition
         if duration <= maxSegmentDuration {
+            #if DEBUG
             print("📝 Short audio, processing directly...")
+            #endif
 
             let transcript = await recognizeSingleSegment(audioURL: audioURL)
 
@@ -409,7 +421,9 @@ class SpeechRecognitionService {
 
         // Long audio: Segmentation required
         let segmentCount = Int(ceil(duration / maxSegmentDuration))
+        #if DEBUG
         print("🔪 Long audio detected, splitting into \(segmentCount) segments...")
+        #endif
 
         var fullTranscript = ""
         var segmentURLs: [URL] = []
@@ -426,7 +440,9 @@ class SpeechRecognitionService {
                     preferredTimescale: 600
                 )
 
+                #if DEBUG
                 print("📝 Processing segment \(segmentIndex)/\(segmentCount) (\(String(format: "%.1f", currentTime))s - \(String(format: "%.1f", min(currentTime + maxSegmentDuration, duration)))s)")
+                #endif
 
                 // Export segment
                 let segmentURL = try await exportAudioSegment(
@@ -456,6 +472,7 @@ class SpeechRecognitionService {
                 try? FileManager.default.removeItem(at: segmentURL)
             }
 
+            #if DEBUG
             if !fullTranscript.isEmpty {
                 let hasPunctuation = fullTranscript.contains(".") || fullTranscript.contains(",") || fullTranscript.contains("!")
                 print("✅ Full transcript generated:")
@@ -463,11 +480,10 @@ class SpeechRecognitionService {
                 print("   Segments processed: \(segmentCount)")
                 print("   Punctuation detected: \(hasPunctuation ? "Yes" : "No")")
                 print("   Preview: \(fullTranscript.prefix(100))...")
-                print("📝 FULL TRANSCRIPT (for debugging):")
-                print("   \"\(fullTranscript)\"")
             } else {
                 print("⚠️ All segments returned empty results")
             }
+            #endif
 
             return fullTranscript
 

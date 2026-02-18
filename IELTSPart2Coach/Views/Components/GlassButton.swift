@@ -13,8 +13,6 @@ struct GlassButton: View {
     let style: ButtonStyle
     let action: () -> Void
 
-    @State private var isPressed = false
-
     enum ButtonStyle {
         case primary    // Amber to Azure gradient
         case secondary  // Subtle glass effect

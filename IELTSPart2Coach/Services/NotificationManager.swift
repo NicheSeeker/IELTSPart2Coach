@@ -51,14 +51,8 @@ class NotificationManager {
     // MARK: - Initialization
 
     private init() {
-        // TEMPORARY DIAGNOSTIC: Disabled to test if this is causing first-launch freeze
-        // Load initial system permission status
-        // Task {
-        //     await updateSystemPermissionStatus()
-        // }
-
         #if DEBUG
-        print("🔔 NotificationManager.init() started (diagnostic mode - no permission check)")
+        print("🔔 NotificationManager.init() started")
         #endif
     }
 
@@ -184,10 +178,8 @@ class NotificationManager {
         content.body = "Try: \(topicTitle)"
         content.sound = .default
 
-        // Add topic ID to userInfo for deep link
+        // Topic title stored for debug logging
         content.userInfo = [
-            "sessionID": sessionID.uuidString,
-            "topicID": topicID.uuidString,
             "topicTitle": topicTitle
         ]
 

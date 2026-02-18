@@ -165,64 +165,6 @@ extension UserProgress {
         guard totalSessions > 0 else { return "N/A" }
         return String(format: "%.1f", overallAverage)
     }
-
-    /// Formatted individual band scores (1 decimal place)
-    var fluencyString: String {
-        guard totalSessions > 0 else { return "N/A" }
-        return String(format: "%.1f", averageFluency)
-    }
-
-    var lexicalString: String {
-        guard totalSessions > 0 else { return "N/A" }
-        return String(format: "%.1f", averageLexical)
-    }
-
-    var grammarString: String {
-        guard totalSessions > 0 else { return "N/A" }
-        return String(format: "%.1f", averageGrammar)
-    }
-
-    var pronunciationString: String {
-        guard totalSessions > 0 else { return "N/A" }
-        return String(format: "%.1f", averagePronunciation)
-    }
-
-    /// Relative date string for last update
-    var lastUpdatedString: String {
-        let calendar = Calendar.current
-        let now = Date()
-
-        if calendar.isDateInToday(lastUpdated) {
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            return "Today at \(formatter.string(from: lastUpdated))"
-        } else if calendar.isDateInYesterday(lastUpdated) {
-            return "Yesterday"
-        } else {
-            let days = calendar.dateComponents([.day], from: lastUpdated, to: now).day ?? 0
-            if days < 7 {
-                return "\(days) days ago"
-            } else {
-                let formatter = DateFormatter()
-                formatter.dateStyle = .medium
-                formatter.timeStyle = .none
-                return formatter.string(from: lastUpdated)
-            }
-        }
-    }
-
-    /// Progress summary for display
-    var summaryText: String {
-        guard totalSessions > 0 else {
-            return "No practice sessions yet"
-        }
-
-        return """
-        \(totalSessions) session\(totalSessions == 1 ? "" : "s") completed
-        Overall: \(overallAverageString)
-        Strongest: \(strongestCategory) | Weakest: \(weakestCategory)
-        """
-    }
 }
 
 // MARK: - Trend Analysis (Phase 7.5)
@@ -285,18 +227,4 @@ extension UserProgress {
         """
     }
 
-    /// Detailed trend analysis for DEBUG (includes explanations)
-    var trendDetailedSummary: String {
-        """
-        📊 Trend Analysis (Latest 5 vs Previous 5 sessions):
-
-        Overall: \(overallTrend.symbol) \(overallTrend.description)
-        → \(overallTrend.detailedDescription)
-
-        Fluency: \(fluencyTrend.symbol) \(fluencyTrend.description)
-        Lexical: \(lexicalTrend.symbol) \(lexicalTrend.description)
-        Grammar: \(grammarTrend.symbol) \(grammarTrend.description)
-        Pronunciation: \(pronunciationTrend.symbol) \(pronunciationTrend.description)
-        """
-    }
 }

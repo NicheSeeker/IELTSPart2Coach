@@ -65,9 +65,7 @@ struct LiquidGlassCard<Content: View>: View {
     }
 
     /// Highlight color for gradients
-    private var highlightColor: Color {
-        colorScheme == .dark ? Color.white : Color.white
-    }
+    private let highlightColor = Color.white
 
     /// Shadow opacity adapts to background
     private var shadowOpacity: Double {

@@ -15,8 +15,6 @@ class HapticManager {
 
     private let impactLight = UIImpactFeedbackGenerator(style: .light)
     private let impactMedium = UIImpactFeedbackGenerator(style: .medium)
-    private let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
-    private let selection = UISelectionFeedbackGenerator()
     private let notification = UINotificationFeedbackGenerator()
 
     private var isPrepared = false
@@ -32,8 +30,6 @@ class HapticManager {
 
         impactLight.prepare()
         impactMedium.prepare()
-        impactHeavy.prepare()
-        selection.prepare()
         notification.prepare()
 
         isPrepared = true
@@ -53,38 +49,12 @@ class HapticManager {
         impactMedium.impactOccurred()
     }
 
-    /// Heavy impact - for significant moments (recording complete, error states)
-    func heavy() {
-        prepareIfNeeded()
-        impactHeavy.impactOccurred()
-    }
-
-    // MARK: - Selection Feedback
-
-    /// Selection change - for UI state transitions
-    func selectionDidChange() {
-        prepareIfNeeded()
-        selection.selectionChanged()
-    }
-
     // MARK: - Notification Feedback
 
     /// Success notification - for positive confirmations
     func success() {
         prepareIfNeeded()
         notification.notificationOccurred(.success)
-    }
-
-    /// Warning notification - for caution states
-    func warning() {
-        prepareIfNeeded()
-        notification.notificationOccurred(.warning)
-    }
-
-    /// Error notification - for error states
-    func error() {
-        prepareIfNeeded()
-        notification.notificationOccurred(.error)
     }
 
     // MARK: - Custom Sequences

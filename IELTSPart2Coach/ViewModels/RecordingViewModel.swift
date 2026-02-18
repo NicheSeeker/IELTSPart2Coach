@@ -311,27 +311,6 @@ class RecordingViewModel {
         reset()
     }
 
-    /// Load specific topic by ID (Phase 7.4: Deep link from notification)
-    func loadSpecificTopic(topicID: UUID) {
-        // Try to find topic by ID
-        if let topic = TopicLoader.shared.topic(by: topicID) {
-            currentTopic = topic
-            reset()
-
-            #if DEBUG
-            print("📲 Loaded topic from notification: \(topic.title)")
-            #endif
-        } else {
-            // Topic not found, load random topic (silent fallback)
-            loadRandomTopic()
-            reset()
-
-            #if DEBUG
-            print("⚠️ Topic \(topicID) not found, loaded random topic")
-            #endif
-        }
-    }
-
     // MARK: - Topic History Management (Phase 8.2)
 
     /// Load recent topic history from UserDefaults

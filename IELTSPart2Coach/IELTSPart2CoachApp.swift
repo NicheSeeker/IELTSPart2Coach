@@ -47,16 +47,12 @@ struct IELTSPart2CoachApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(appDelegate.deepLinkHandler)
                 // Phase 5: Removed .preferredColorScheme - now follows system
                 // Phase 7.4 Fix: Refresh notification permission status when app returns to foreground
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                     Task {
                         await NotificationManager.shared.updateSystemPermissionStatus()
                         // ✅ FIX: Only log in debug builds
-                        #if DEBUG
-                        // print("🔄 App returned to foreground, refreshed notification permission status")
-                        #endif
                     }
                 }
                 // Phase 7.1.2: Memory warning handler to prevent crashes
@@ -79,8 +75,6 @@ struct IELTSPart2CoachApp: App {
 // MARK: - AppDelegate (Phase 7.4: Notification Handling)
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    let deepLinkHandler = DeepLinkHandler()
-
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -99,18 +93,11 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        // Notification tap just opens the app (no deep link to specific topic)
+        #if DEBUG
         let userInfo = response.notification.request.content.userInfo
-
-        // Extract topicID from notification
-        if let topicIDString = userInfo["topicID"] as? String,
-           let topicID = UUID(uuidString: topicIDString) {
-            // Trigger deep link
-            deepLinkHandler.handleNotificationTap(topicID: topicID)
-
-            #if DEBUG
-            // print("📲 Notification tapped, loading topic: \(topicID)")
-            #endif
-        }
+        print("📲 Notification tapped: \(userInfo["topicTitle"] as? String ?? "unknown")")
+        #endif
 
         completionHandler()
     }
@@ -123,20 +110,5 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     ) {
         // Show notification even when app is in foreground
         completionHandler([.banner, .sound])
-    }
-}
-
-// MARK: - DeepLinkHandler (Phase 7.4)
-
-@MainActor
-class DeepLinkHandler: ObservableObject {
-    @Published var pendingTopicID: UUID?
-
-    func handleNotificationTap(topicID: UUID) {
-        pendingTopicID = topicID
-    }
-
-    func clearPendingDeepLink() {
-        pendingTopicID = nil
     }
 }

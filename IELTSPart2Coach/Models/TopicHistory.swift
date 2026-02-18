@@ -84,14 +84,6 @@ struct TopicHistory: Identifiable, Codable {
         #endif
     }
 
-    /// Update last attempt date (for manual corrections)
-    mutating func updateLastAttempt(to date: Date) {
-        lastAttemptDate = date
-
-        #if DEBUG
-        print("✅ TopicHistory \(topicID): Last attempt updated to \(date)")
-        #endif
-    }
 }
 
 // MARK: - Display Helpers
@@ -123,22 +115,5 @@ extension TopicHistory {
                 return months == 1 ? "1 month ago" : "\(months) months ago"
             }
         }
-    }
-
-    /// Absolute date string for first attempt (for History grouping)
-    var firstAttemptDateString: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: firstAttemptDate)
-    }
-
-    /// Practice streak indicator (days since first attempt)
-    var practiceStreak: Int {
-        Calendar.current.dateComponents(
-            [.day],
-            from: firstAttemptDate,
-            to: Date()
-        ).day ?? 0
     }
 }

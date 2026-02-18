@@ -162,96 +162,51 @@ struct FeedbackView: View {
                         if historyMode {
                             // History Mode: Only Play/Pause + Close
                             HStack(spacing: 12) {
-                                Button {
+                                GlassButton(playbackButtonText, style: .secondary) {
                                     onPlayAgain()
-                                } label: {
-                                    Text(playbackButtonText)  // Phase 7.2 Fix: Three-state (Pause/Resume/Play Again)
-                                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                                        .foregroundStyle(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(.gray.opacity(0.3))
-                                        }
                                 }
+                                .frame(maxWidth: .infinity)
                                 .accessibleButton(
                                     label: playbackButtonText,
                                     hint: isPlaying ? "Pause the audio" : (hasFinished ? "Play recording from the beginning" : "Play the recording")
                                 )
 
-                                Button {
+                                GlassButton("Close", style: .primary) {
                                     onNewTopic()
-                                } label: {
-                                    Text("Close")
-                                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                                        .foregroundStyle(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(.blue)
-                                        }
                                 }
+                                .frame(maxWidth: .infinity)
                                 .accessibleButton(
                                     label: "Close",
                                     hint: "Return to history view"
                                 )
                             }
                         } else {
-                            // Normal Mode: Row 1 - Primary actions (replay/re-record)
+                            // Normal Mode: Row 1 - Play + Practice Again
                             HStack(spacing: 12) {
-                                Button {
+                                GlassButton(playbackButtonText, style: .secondary) {
                                     onPlayAgain()
-                                } label: {
-                                    Text(playbackButtonText)  // Phase 8.1 Fix: Dynamic text (Play/Pause/Resume/Play Again)
-                                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                                        .foregroundStyle(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(.gray.opacity(0.3))
-                                        }
                                 }
+                                .frame(maxWidth: .infinity)
                                 .accessibleButton(
                                     label: playbackButtonText,
                                     hint: isPlaying ? "Pause the audio" : (hasFinished ? "Play recording from the beginning" : "Play the recording")
                                 )
 
-                                Button {
+                                GlassButton("Practice Again", style: .secondary) {
                                     onRecordAgain()
-                                } label: {
-                                    Text("Practice Again")
-                                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                                        .foregroundStyle(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background {
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(.orange)
-                                        }
                                 }
+                                .frame(maxWidth: .infinity)
                                 .accessibleButton(
                                     label: "Practice again",
                                     hint: "Practice this topic again with a new recording"
                                 )
                             }
 
-                            // Row 2: Secondary action (new topic)
-                            Button {
+                            // Row 2: New Topic (primary action)
+                            GlassButton("New Topic", style: .primary) {
                                 onNewTopic()
-                            } label: {
-                                Text("New Topic")
-                                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(.blue)
-                                    }
                             }
+                            .frame(maxWidth: .infinity)
                             .accessibleButton(
                                 label: "New topic",
                                 hint: "Load a different speaking topic"
