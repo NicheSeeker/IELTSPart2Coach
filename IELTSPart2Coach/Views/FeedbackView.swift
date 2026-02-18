@@ -192,12 +192,12 @@ struct FeedbackView: View {
                                     hint: isPlaying ? "Pause the audio" : (hasFinished ? "Play recording from the beginning" : "Play the recording")
                                 )
 
-                                GlassButton("Practice Again", style: .secondary) {
+                                GlassButton("Retry", style: .secondary) {
                                     onRecordAgain()
                                 }
                                 .frame(maxWidth: .infinity)
                                 .accessibleButton(
-                                    label: "Practice again",
+                                    label: "Retry",
                                     hint: "Practice this topic again with a new recording"
                                 )
                             }
