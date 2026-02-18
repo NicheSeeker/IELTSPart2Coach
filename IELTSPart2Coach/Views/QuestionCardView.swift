@@ -43,11 +43,17 @@ struct QuestionCardView: View {
             Color.adaptiveBackground
                 .ignoresSafeArea()
 
-            VStack(spacing: 32) {
+            VStack(spacing: 24) {
                 Spacer()
 
                 // Question Card
                 questionCard
+
+                // Phase 9: Progress summary (only in idle state with data)
+                if viewModel.state == .idle, let progress = viewModel.userProgress, progress.totalSessions >= 1 {
+                    progressSummary(progress: progress)
+                        .transition(.opacity)
+                }
 
                 Spacer()
 
@@ -77,29 +83,20 @@ struct QuestionCardView: View {
                 .transition(.opacity.combined(with: .scale))
             }
 
-            // History Button (top-left, only visible in idle state)
+            // Top Bar (only visible in idle state)
             if viewModel.state == .idle {
                 VStack {
                     HStack {
                         historyButton
-                            .padding(.top, 24)
-                            .padding(.leading, 24)
                         Spacer()
-                    }
-                    Spacer()
-                }
-                .transition(.opacity)
-            }
-
-            // Settings Button (top-right, only visible in idle state)
-            if viewModel.state == .idle {
-                VStack {
-                    HStack {
+                        if StreakManager.shared.currentStreak > 0 {
+                            streakBadge
+                        }
                         Spacer()
                         settingsButton
-                            .padding(.top, 24)
-                            .padding(.trailing, 24)
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
                     Spacer()
                 }
                 .transition(.opacity)
@@ -157,7 +154,8 @@ struct QuestionCardView: View {
                         isPlaying: viewModel.isPlaying,  // Phase 8.1 Fix: Dynamic button text
                         hasFinished: viewModel.hasFinishedPlayback,  // Phase 8.1 Fix: Four-state logic
                         playbackProgress: viewModel.playbackProgress,  // Phase 8.1 Fix: For Resume state
-                        transcript: $viewModel.currentTranscript  // Phase 8.1 Fix: Binding for reactive updates
+                        transcript: $viewModel.currentTranscript,  // Phase 8.1 Fix: Binding for reactive updates
+                        nextFocusText: viewModel.nextFocusText  // Phase 9: Next action suggestion
                     )
                 }
             }
@@ -363,7 +361,7 @@ struct QuestionCardView: View {
             AnimatedWaveform()
                 .frame(height: 60)
 
-            Text("Ready to speak")
+            Text("Whenever you're ready")
                 .font(.system(size: 16, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
         }
@@ -532,6 +530,8 @@ struct QuestionCardView: View {
             GlassButton("Start", style: .primary) {
                 viewModel.startPreparation()
             }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 32)
             .accessibleButton(
                 label: "Start practice",
                 hint: "Begin 60-second preparation and recording"
@@ -631,6 +631,72 @@ struct QuestionCardView: View {
             label: "Settings",
             hint: "Manage app settings and data"
         )
+    }
+
+    // MARK: - Streak Badge (Phase 9)
+
+    private var streakBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(.orange)
+            Text("\(StreakManager.shared.currentStreak) \(StreakManager.shared.currentStreak == 1 ? "day" : "days") streak")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background {
+            Capsule()
+                .fill(.ultraThinMaterial)
+        }
+    }
+
+    // MARK: - Progress Summary (Phase 9)
+
+    private func progressSummary(progress: UserProgress) -> some View {
+        HStack(spacing: 16) {
+            VStack(spacing: 2) {
+                Text("\(progress.totalSessions)")
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+                Text("sessions")
+                    .font(.system(size: 11, weight: .regular, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+
+            Rectangle()
+                .fill(.secondary.opacity(0.3))
+                .frame(width: 1, height: 24)
+
+            VStack(spacing: 2) {
+                Text(progress.overallAverageString)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+                Text("avg band")
+                    .font(.system(size: 11, weight: .regular, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+
+            Rectangle()
+                .fill(.secondary.opacity(0.3))
+                .frame(width: 1, height: 24)
+
+            VStack(spacing: 2) {
+                Text(progress.weakestCategory)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(.orange)
+                Text("focus")
+                    .font(.system(size: 11, weight: .regular, design: .rounded))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+        .background {
+            Capsule()
+                .fill(.ultraThinMaterial)
+        }
     }
 
     // MARK: - History Button (Phase 7.2)

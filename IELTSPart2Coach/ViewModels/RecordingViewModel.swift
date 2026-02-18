@@ -112,6 +112,31 @@ class RecordingViewModel {
 
     // MARK: - Computed Properties
 
+    /// Phase 9: User progress data for home screen display
+    var userProgress: UserProgress? {
+        try? DataManager.shared.fetchUserProgress()
+    }
+
+    /// Phase 9: Next-focus suggestion based on weakest category
+    var nextFocusText: String? {
+        guard let progress = userProgress, progress.totalSessions >= 1 else { return nil }
+        let category = progress.weakestCategory
+        guard category != "None" else { return nil }
+
+        switch category {
+        case "Fluency":
+            return "Next time, try linking your ideas with phrases like \"that reminds me of\" or \"speaking of which.\""
+        case "Lexical":
+            return "Next time, try replacing one common word with a more specific one — like \"fascinating\" instead of \"good.\""
+        case "Grammar":
+            return "Next time, try mixing in one complex sentence — a \"because\" or \"although\" clause."
+        case "Pronunciation":
+            return "Next time, try slowing down slightly on key words to make your pronunciation clearer."
+        default:
+            return "Keep practicing — consistency is the fastest path to improvement."
+        }
+    }
+
     /// Progress from 0.0 to 1.0
     var progress: Double {
         switch state {
@@ -922,6 +947,12 @@ class RecordingViewModel {
             if let sessionID = currentSessionID {
                 await updateSessionFeedback(sessionID: sessionID, feedback: result)
             }
+
+            // Phase 9: Update streak counter
+            StreakManager.shared.recordPractice()
+
+            // Phase 9: Update daily reminder with latest progress
+            Task { await NotificationManager.shared.updateDailyReminderContent() }
 
             // Request App Store review at milestone sessions
             AppReviewManager.shared.requestReviewIfAppropriate()

@@ -158,7 +158,8 @@ struct HistoryView: View {
                 historyMode: true,  // Phase 7.2: Hide "Record Again" button
                 isPlaying: viewModel.isPlaying,  // Phase 7.2 Fix: Pass playback state for dynamic button text
                 hasFinished: viewModel.hasFinishedPlayback,  // Phase 7.2 Fix: Three-state button logic
-                transcript: .constant(session.transcript)  // Phase 8.1 Fix: Pass historical transcript
+                transcript: .constant(session.transcript),  // Phase 8.1 Fix: Pass historical transcript
+                nextFocusText: nil  // Phase 9: No action prompt in history mode
             )
         } else {
             // Session without feedback: Show minimal playback interface

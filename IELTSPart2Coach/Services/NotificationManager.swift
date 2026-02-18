@@ -238,6 +238,81 @@ class NotificationManager {
         print("🗑 Cancelled notification for session \(sessionID)")
         #endif
     }
+
+    // MARK: - Daily Practice Reminder (Phase 9)
+
+    private let dailyReminderIdentifier = "dailyReminder"
+
+    /// Schedule a personalized daily reminder at 10:00 AM local time
+    func scheduleDailyReminder(weakestCategory: String?) {
+        // Only schedule if toggle is enabled
+        guard isEnabled else { return }
+
+        // Build personalized message
+        let messages: [String]
+        if let category = weakestCategory, category != "None" {
+            messages = [
+                "A quick 2-minute practice can sharpen your \(category) skills.",
+                "Your \(category) is improving — keep the momentum going.",
+                "Focus on \(category) today. Just one practice makes a difference."
+            ]
+        } else {
+            messages = [
+                "A quick 2-minute practice keeps your speaking sharp.",
+                "Consistency is key — just one practice today makes a difference.",
+                "Keep the momentum going with a quick speaking session."
+            ]
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Time to practice!"
+        content.body = messages.randomElement()!
+        content.sound = .default
+
+        // Trigger at 10:00 AM local time, repeating daily
+        var dateComponents = DateComponents()
+        dateComponents.hour = 10
+        dateComponents.minute = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+
+        let request = UNNotificationRequest(
+            identifier: dailyReminderIdentifier,
+            content: content,
+            trigger: trigger
+        )
+
+        center.add(request) { error in
+            #if DEBUG
+            if let error = error {
+                print("❌ Failed to schedule daily reminder: \(error)")
+            } else {
+                print("✅ Daily reminder scheduled at 10:00 AM")
+                print("   Message: \(content.body)")
+            }
+            #endif
+        }
+    }
+
+    /// Update daily reminder content with latest user progress
+    func updateDailyReminderContent() async {
+        // Check system permission first
+        await updateSystemPermissionStatus()
+        guard systemPermissionStatus == .authorized else { return }
+        guard isEnabled else { return }
+
+        // Fetch weakest category from user progress
+        let weakestCategory: String?
+        if let progress = try? DataManager.shared.fetchUserProgress(),
+           progress.totalSessions >= 1 {
+            weakestCategory = progress.weakestCategory
+        } else {
+            weakestCategory = nil
+        }
+
+        // Remove old daily reminder and schedule new one
+        center.removePendingNotificationRequests(withIdentifiers: [dailyReminderIdentifier])
+        scheduleDailyReminder(weakestCategory: weakestCategory)
+    }
 }
 
 // MARK: - UNAuthorizationStatus Extension

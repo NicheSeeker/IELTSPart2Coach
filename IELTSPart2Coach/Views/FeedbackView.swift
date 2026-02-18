@@ -20,6 +20,7 @@ struct FeedbackView: View {
     var hasFinished: Bool = false  // Phase 7.2: Track if playback completed naturally
     var playbackProgress: Double = 0  // Phase 8.1: Playback progress (0.0-1.0) for Resume state
     @Binding var transcript: String?  // Phase 8.1: Optional speech transcript (reactive)
+    var nextFocusText: String? = nil  // Phase 9: Next action suggestion
 
     // MARK: - State
 
@@ -132,6 +133,28 @@ struct FeedbackView: View {
                             .foregroundStyle(.secondary.opacity(0.5))
                             .padding(.horizontal)
                             .padding(.top, 4)
+                    }
+
+                    // Phase 9: Next action prompt
+                    if let focusText = nextFocusText {
+                        HStack(spacing: 8) {
+                            Image(systemName: "lightbulb.fill")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.orange)
+
+                            Text(focusText)
+                                .font(.system(size: 14, weight: .regular, design: .rounded))
+                                .foregroundStyle(.secondary)
+                                .lineSpacing(2)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(.ultraThinMaterial)
+                        }
+                        .padding(.horizontal)
                     }
 
                     // Action Buttons

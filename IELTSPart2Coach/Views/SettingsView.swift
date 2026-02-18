@@ -155,7 +155,7 @@ struct SettingsView: View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("3-Day Practice Reminders")
+                    Text("Daily Practice Reminders")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
 
                     Spacer()
@@ -501,6 +501,7 @@ class SettingsViewModel {
     func clearAllHistory() async {
         do {
             try DataManager.shared.clearAllData()
+            StreakManager.shared.reset()
 
             // Reload storage after clearing
             await loadStorageUsage()
