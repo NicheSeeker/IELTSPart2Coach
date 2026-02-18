@@ -30,35 +30,26 @@ A minimalist iOS app for practicing IELTS Speaking Part 2 with AI-powered feedba
    open IELTSPart2Coach.xcodeproj
    ```
 
-3. **Backend Setup** (for AI analysis)
-   - Navigate to `ielts-backend` folder
-   - Follow setup instructions in backend README
-   - Run local dev server: `wrangler dev --ip 0.0.0.0 --port 8787`
-
-4. **Build and Run**
+3. **Build and Run**
    - Select your iPhone or simulator as target
    - Press ⌘R to build and run
+   - AI analysis requires a Cloudflare Workers backend (not included in this repo)
 
 ## 🏗️ Project Status
 
-**Current Version**: v1.0.0 (App Store Ready)
-
-**Latest Updates** (November 2025):
-- ✅ Transcript quality improvements with delegate-based file completion
-- ✅ Hardware startup delay to prevent first-word loss
-- ✅ Production testing on iPhone 16 with 4G network
-- ✅ Audio session crash fixes for iPhone 15/16 (A18/M18 devices)
-- ✅ Backend rate limiting optimization for App Store review
+**Current Version**: v1.0 (App Store)
 
 **Core Features**:
 - ✅ Recording interface with real-time waveform visualization
-- ✅ AI-powered feedback with Gemini 2.5 Flash
+- ✅ AI-powered feedback with Gemini 2.5 Flash (via Cloudflare Workers proxy)
 - ✅ 4 IELTS band scores (Fluency, Lexical, Grammar, Pronunciation)
-- ✅ Speech-to-text transcription (Apple Speech Recognition)
-- ✅ Practice history and progress tracking (SwiftData)
-- ✅ Local notifications for 3-day practice reminders
+- ✅ Speech-to-text transcription (Apple Speech Recognition, optional)
+- ✅ Practice history and progress tracking
+- ✅ AI-generated topics based on weak areas
+- ✅ Daily and 3-day practice reminders
+- ✅ Streak tracking and retention features
 - ✅ Dark mode support
-- ✅ Centralized audio session management
+- ✅ Centralized audio session management (crash-free on A18/M18 devices)
 
 ## 🎯 IELTS Band Scores
 
@@ -79,13 +70,13 @@ The app analyzes your speech across 4 official IELTS criteria:
 
 ## 🛠️ Tech Stack
 
-- **Language**: Swift 5.9+
-- **Framework**: SwiftUI
-- **Persistence**: SwiftData (iOS 17+)
+- **Language**: Swift 5.0
+- **Framework**: SwiftUI (iOS 26+)
+- **Persistence**: JSON file-based (DataManager)
 - **Speech Recognition**: Apple Speech Framework
 - **AI Analysis**: Gemini 2.5 Flash (via OpenRouter)
-- **Backend**: Cloudflare Workers
-- **Audio**: AVFoundation
+- **Backend**: Cloudflare Workers (API proxy + rate limiting)
+- **Audio**: AVFoundation + AudioSessionManager
 
 ## 📄 License
 
