@@ -37,15 +37,16 @@ class GeminiService {
             }
         }
 
-        // Priority 2: Local development backend
+        // Priority 2: Local development backend (simulator only)
+        // Real device uses production URL even in DEBUG to avoid .local hostname issues
         #if targetEnvironment(simulator)
         return "http://127.0.0.1:8787"  // Simulator: Mac localhost
         #else
-        return "http://CharliedeMacBook-Pro.local:8787"  // Real device: Mac .local hostname
+        return "https://api.minivaluator.com"  // Real device: custom domain (China accessible)
         #endif
         #else
         // RELEASE Mode: Force production environment only
-        return "https://ielts-api.charliewang0322.workers.dev"
+        return "https://api.minivaluator.com"
         #endif
     }
 

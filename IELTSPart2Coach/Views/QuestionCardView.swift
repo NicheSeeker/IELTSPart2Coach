@@ -20,6 +20,8 @@ struct QuestionCardView: View {
     @State private var showSettingsView = false  // Phase 7.3: Settings view control
     @State private var hasInitialized = false  // ✅ FIX: Track initialization state
     @State private var isPromptsExpanded = false  // Phase 8.2: Collapsible prompts control
+    @AppStorage("hasSeenSeekHint") private var hasSeenSeekHint = false
+    @State private var showSeekHint = false
 
     // MARK: - Computed Properties
 
@@ -510,6 +512,28 @@ struct QuestionCardView: View {
                 showProgress: true
             )
             .frame(height: 60)
+
+            // One-time seek hint
+            if showSeekHint {
+                Text("Play and drag the ring to seek")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .transition(.opacity)
+            }
+        }
+        .onAppear {
+            if !hasSeenSeekHint {
+                withAnimation(.easeIn(duration: 0.5).delay(0.5)) {
+                    showSeekHint = true
+                }
+                hasSeenSeekHint = true
+                Task {
+                    try? await Task.sleep(for: .seconds(4))
+                    withAnimation(.easeOut(duration: 0.8)) {
+                        showSeekHint = false
+                    }
+                }
+            }
         }
     }
 
@@ -540,7 +564,19 @@ struct QuestionCardView: View {
 
         case .finished:
             VStack(spacing: 12) {
-                // Core actions (top row)
+                // Primary CTA (full width)
+                GlassButton("Get AI feedback", style: .primary) {
+                    Task {
+                        await viewModel.analyzeRecording()
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .accessibleButton(
+                    label: "Get AI feedback",
+                    hint: "Analyze your speech and receive band scores"
+                )
+
+                // Secondary actions
                 HStack(spacing: 16) {
                     GlassButton(viewModel.isPlaying ? "Pause" : "Play", style: .secondary) {
                         viewModel.togglePlayback()
@@ -549,27 +585,6 @@ struct QuestionCardView: View {
                         label: viewModel.isPlaying ? "Pause playback" : "Play recording",
                         hint: viewModel.isPlaying ? "Pause your recorded speech" : "Listen to your recording",
                         value: viewModel.isPlaying ? "Playing" : "Paused"
-                    )
-
-                    GlassButton("Get AI feedback", style: .primary) {
-                        Task {
-                            await viewModel.analyzeRecording()
-                        }
-                    }
-                    .accessibleButton(
-                        label: "Get AI feedback",
-                        hint: "Analyze your speech and receive band scores"
-                    )
-                }
-
-                // Secondary actions (bottom row)
-                HStack(spacing: 16) {
-                    GlassButton("Replay", style: .secondary) {
-                        viewModel.replayRecording()
-                    }
-                    .accessibleButton(
-                        label: "Replay from beginning",
-                        hint: "Restart playback from the start"
                     )
 
                     GlassButton("New Topic", style: .secondary) {
@@ -581,7 +596,7 @@ struct QuestionCardView: View {
                         label: "New topic",
                         hint: "Load a different speaking topic"
                     )
-                    .disabled(viewModel.isGeneratingTopic)  // Phase 8.2: Disable during generation
+                    .disabled(viewModel.isGeneratingTopic)
                 }
             }
         }
